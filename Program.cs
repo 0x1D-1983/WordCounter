@@ -18,9 +18,9 @@ namespace WordCounter
             if (args.Length != 1)
                 throw new ArgumentException("Missing folder location");
 
-            var popularWords = Directory.GetFiles(args[0]).AsEnumerable().AsParallel()
-                .SelectMany(f => File.ReadLines(f)).AsEnumerable().AsParallel()
-                .SelectMany(l => l.Split(' ')).AsEnumerable()
+            var popularWords = Directory.GetFiles(args[0]).AsParallel()
+                .SelectMany(f => File.ReadLines(f)).AsParallel()
+                .SelectMany(l => l.Split(' '))
                 .Where(w => !string.IsNullOrWhiteSpace(w))
                 .Select(w => w)
                 .GroupBy(w => w)
