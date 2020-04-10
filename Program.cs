@@ -11,14 +11,18 @@ namespace WordCounter
     {
         static void Main(string[] args)
         {
-            // Stopwatch to determine the execution time for an application
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
-
             if (args.Length != 1)
                 throw new ArgumentException("Missing folder location");
 
-            var popularWords = Directory.GetFiles(args[0]).AsParallel()
+            StopwatchAction(() => CountWords(args[0]));
+        }
+
+        static void CountWords(string folderPath)
+        {
+            if (string.IsNullOrEmpty(folderPath))
+                throw new ArgumentException("Missing folder location");
+
+            var popularWords = Directory.GetFiles(folderPath).AsParallel()
                 .SelectMany(f => File.ReadLines(f)).AsParallel()
                 .SelectMany(l => l.Split(' '))
                 .Where(w => !string.IsNullOrWhiteSpace(w))
@@ -27,13 +31,22 @@ namespace WordCounter
                 .OrderByDescending(w => w.Count())
                 .Take(5);
 
-            // Stop measuring time
-            stopwatch.Stop();
-
             foreach (var entry in popularWords)
             {
                 Console.WriteLine($"{entry.Key}: {entry.Count()}");
             }
+        }
+
+        static void StopwatchAction(Action action)
+        {
+            // Stopwatch to determine the execution time for an application
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            action();
+
+            // Stop measuring time
+            stopwatch.Stop();
 
             // Format and display the TimeSpan value.
             var ts = stopwatch.Elapsed;
