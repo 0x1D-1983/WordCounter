@@ -14,16 +14,12 @@ namespace WordCounter
             if (args.Length != 1)
                 throw new ArgumentException("Missing folder location");
 
-            StopwatchAction(() => CountWords(args[0]));
+            StopwatchAction(() => CountWords(ReadAllLines(args[0])));
         }
 
-        static void CountWords(string folderPath)
+        static void CountWords(IEnumerable<string> lines)
         {
-            if (string.IsNullOrEmpty(folderPath))
-                throw new ArgumentException("Missing folder location");
-
-            var popularWords = Directory.GetFiles(folderPath).AsParallel()
-                .SelectMany(f => File.ReadLines(f)).AsParallel()
+            var popularWords = lines.AsParallel()
                 .SelectMany(l => l.Split(' '))
                 .Where(w => !string.IsNullOrWhiteSpace(w))
                 .Select(w => w)
@@ -35,6 +31,13 @@ namespace WordCounter
             {
                 Console.WriteLine($"{entry.Key}: {entry.Count()}");
             }
+        }
+
+        // Impure: read all lines from files
+        static IEnumerable<string> ReadAllLines(string folderPath)
+        {
+            return Directory.GetFiles(folderPath).AsParallel()
+                .SelectMany(f => File.ReadLines(f).AsParallel());
         }
 
         static void StopwatchAction(Action action)
